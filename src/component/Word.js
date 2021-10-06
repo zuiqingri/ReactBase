@@ -1,12 +1,43 @@
 import React, {  useState } from "react";
-export default function Word({word}){
+import { findRenderedDOMComponentWithClass } from "react-dom/test-utils";
+export default function Word({word:w}){
+    const [word, setWord]=useState(w);
     const [isShow,setIsShow]=useState(false);
     const [isDone, setIsDone]=useState(word.isDone);
     function toggleShow(){
         setIsShow(!isShow)
     }
     function toggleDone(){
-        setIsDone(!isDone)
+      //  setIsDone(!isDone)
+      fetch(`http://localhost:3001/words/${word.id}`,{
+          method:'PUT',
+          headers:{
+              'Content-Type':'application/json',
+              },
+              body:JSON.stringify({
+                  ...word,
+                  isDone:!isDone
+              })
+            })
+            .then(res=>{
+                if(res.ok){
+                    setIsDone(!isDone);
+                }
+            })
+    }
+    function del(){
+         if(window.confirm('need to delete?')){
+             fetch(`http://localhost:3001/words/${word.id}`,{
+                 method:"DELETE"
+             }).then(res=>{
+                 if(res.ok){
+                     setWord({id:0});
+                 }
+             })
+         }
+    }
+    if (word.id===0){
+        return null;
     }
     return(
         <tr className={isDone ? 'off' :''}>
@@ -17,7 +48,7 @@ export default function Word({word}){
                 <td>{isShow && word.kor}</td>
                 <td>
                     <button onClick={toggleShow}> meaning{isShow ? "Hide" : "Show"}</button>
-                    <button className="btn_del"> Delete</button>
+                    <button onClick={del} className="btn_del"> Delete</button>
                 </td>
             </tr>
     )
